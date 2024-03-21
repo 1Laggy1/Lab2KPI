@@ -1,5 +1,3 @@
-// handler.go
-
 package lab2
 
 import (
@@ -15,26 +13,54 @@ type OutputWriter interface {
 	Write(string) error
 }
 
-type ComputeHandler struct {
-	InputReader  InputReader
-	OutputWriter OutputWriter
+type StringInputReader struct {
+	Expr string
 }
 
-func (ch *ComputeHandler) Compute() error {
-	expr, err := ch.InputReader.Read()
-	if err != nil {
-		return err
-	}
+func NewStringInputReader(expr string) *StringInputReader {
+	return &StringInputReader{Expr: expr}
+}
 
-	result, err := PostfixToInfix(expr)
-	if err != nil {
-		return err
-	}
+func (ir *StringInputReader) Read() (string, error) {
+	return ir.Expr, nil
+}
 
-	err = ch.OutputWriter.Write(result)
-	if err != nil {
-		return err
-	}
+type FileInputReader struct {
+	File io.Reader
+}
 
+func NewFileInputReader(file io.Reader) *FileInputReader {
+	return &FileInputReader{File: file}
+}
+
+func (ir *FileInputReader) Read() (string, error) {
+	data, err := io.ReadAll(ir.File)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+type StdOutputWriter struct{}
+
+func NewStdOutputWriter() *StdOutputWriter {
+	return &StdOutputWriter{}
+}
+
+func (ow *StdOutputWriter) Write(result string) error {
+	fmt.Println(result)
 	return nil
+}
+
+type FileOutputWriter struct {
+	File io.Writer
+}
+
+func NewFileOutputWriter(file io.Writer) *FileOutputWriter {
+	return &FileOutputWriter{File: file}
+}
+
+func (ow *FileOutputWriter) Write(result string) error {
+	_, err := ow.File.Write([]byte(result))
+	return err
 }

@@ -1,66 +1,75 @@
+// lab2/handler.go
 package lab2
 
 import (
-	"fmt"
+	"bufio"
+	"errors"
 	"io"
+	"os"
+	"strings"
 )
 
-type InputReader interface {
-	Read() (string, error)
+// ComputeHandler відповідає за обробку виразів та запис результатів
+type ComputeHandler struct {
+	input  io.Reader
+	output io.Writer
 }
 
-type OutputWriter interface {
-	Write(string) error
+// NewComputeHandler створює новий екземпляр ComputeHandler
+func NewComputeHandler(input io.Reader, output io.Writer) *ComputeHandler {
+	return &ComputeHandler{input: input, output: output}
 }
 
-type StringInputReader struct {
-	Expr string
-}
-
-func NewStringInputReader(expr string) *StringInputReader {
-	return &StringInputReader{Expr: expr}
-}
-
-func (ir *StringInputReader) Read() (string, error) {
-	return ir.Expr, nil
-}
-
-type FileInputReader struct {
-	File io.Reader
-}
-
-func NewFileInputReader(file io.Reader) *FileInputReader {
-	return &FileInputReader{File: file}
-}
-
-func (ir *FileInputReader) Read() (string, error) {
-	data, err := io.ReadAll(ir.File)
-	if err != nil {
-		return "", err
+// Compute обробляє вираз та записує результат
+// Compute обробляє вираз та записує результат
+func (ch *ComputeHandler) Compute() error {
+	// Зчитування виразу з введеного джерела
+	scanner := bufio.NewScanner(ch.input)
+	if !scanner.Scan() {
+		return errors.New("відсутні дані для обробки")
 	}
-	return string(data), nil
-}
+	expression := scanner.Text()
 
-type StdOutputWriter struct{}
+	// Логіка обчислення виразу з використанням функцій з implementation.go
+	result, err := PostfixToInfix(expression)
+	if err != nil {
+		return err
+	}
 
-func NewStdOutputWriter() *StdOutputWriter {
-	return &StdOutputWriter{}
-}
+	// Запис результату у вказане місце
+	_, err = ch.output.Write([]byte(result))
+	if err != nil {
+		return err
+	}
 
-func (ow *StdOutputWriter) Write(result string) error {
-	fmt.Println(result)
 	return nil
 }
 
-type FileOutputWriter struct {
-	File io.Writer
+// ParseInput розпізнає тип введення та повертає відповідне джерело вводу
+func ParseInput(expressionFlag, fileFlag string) (io.Reader, error) {
+	if expressionFlag != "" {
+		return strings.NewReader(expressionFlag), nil
+	} else if fileFlag != "" {
+		file, err := os.Open(fileFlag)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		return file, nil
+	} else {
+		return nil, errors.New("не вказаний вираз або файл з виразом")
+	}
 }
 
-func NewFileOutputWriter(file io.Writer) *FileOutputWriter {
-	return &FileOutputWriter{File: file}
-}
-
-func (ow *FileOutputWriter) Write(result string) error {
-	_, err := ow.File.Write([]byte(result))
-	return err
+// ParseOutput розпізнає тип виведення та повертає відповідне місце виведення
+func ParseOutput(outputFlag string) (io.Writer, error) {
+	if outputFlag != "" {
+		file, err := os.Create(outputFlag)
+		if err != nil {
+			return nil, err
+		}
+		return file, nil
+	} else {
+		return os.Stdout, nil
+	}
 }

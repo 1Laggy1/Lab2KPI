@@ -1,12 +1,32 @@
 package lab2
 
-// ComputeHandler should be constructed with input io.Reader and output io.Writer.
-// Its Compute() method should read the expression from input and write the computed result to the output.
-type ComputeHandler struct {
-	// TODO: Add necessary fields.
+import (
+	"fmt"
+	"io"
+)
+
+// Handler містить методи для обробки вхідних даних та запису результатів
+type Handler struct {
+	Reader InputReader
+	Writer OutputWriter
 }
 
-func (ch *ComputeHandler) Compute() error {
-	// TODO: Implement.
+// Compute обробляє вхідні дані та записує результат
+func (h *Handler) Compute() error {
+	expr, err := h.Reader.Read()
+	if err != nil {
+		return err
+	}
+
+	infixExpr, err := PostfixToInfix(expr)
+	if err != nil {
+		return err
+	}
+
+	err = h.Writer.Write(infixExpr)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

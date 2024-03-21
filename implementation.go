@@ -1,3 +1,5 @@
+//implementation.go
+
 package lab2
 
 import (
@@ -5,7 +7,7 @@ import (
 	"strings"
 )
 
-func postfixToInfix(expression string) (string, error) {
+func PostfixToInfix(expression string) (string, error) {
 	stack := []string{}
 
 	tokens := strings.Fields(expression)
@@ -40,7 +42,7 @@ func isOperator(token string) bool {
 
 func main() {
 	postfixExpression := "10 2 8 * 4 / + 3 -"
-	infixExpression, err := postfixToInfix(postfixExpression)
+	infixExpression, err := PostfixToInfix(postfixExpression)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

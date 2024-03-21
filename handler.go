@@ -12,7 +12,7 @@ type ComputeHandler struct {
 
 func (ch *ComputeHandler) Compute() error {
     var input string
-    , err := fmt.Fscan(ch.InputReader, &input)
+    _, err := fmt.Fscan(ch.InputReader, &input)
     if err != nil {
         return err
     }
@@ -22,7 +22,7 @@ func (ch *ComputeHandler) Compute() error {
         return err
     }
 
-    , err = fmt.Fprintln(ch.OutputWriter, result)
+    _, err = fmt.Fprintln(ch.OutputWriter, result)
     if err != nil {
         return err
     }

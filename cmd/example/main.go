@@ -1,27 +1,55 @@
+// main.go
+
 package main
 
 import (
 	"flag"
-	"fmt"
-	lab2 "github.com/roman-mazur/architecture-lab-2"
-)
+	"log"
+	"os"
 
-var (
-	inputExpression = flag.String("e", "", "Expression to compute")
-	// TODO: Add other flags support for input and output configuration.
+	lab2 "github.com/1Laggy1/Lab2KPI"
 )
 
 func main() {
+	exprPtr := flag.String("e", "", "Postfix expression to evaluate")
+	filePtr := flag.String("f", "", "File containing postfix expression")
+	outputPtr := flag.String("o", "", "Output file for result")
 	flag.Parse()
 
-	// TODO: Change this to accept input from the command line arguments as described in the task and
-	//       output the results using the ComputeHandler instance.
-	//       handler := &lab2.ComputeHandler{
-	//           Input: {construct io.Reader according the command line parameters},
-	//           Output: {construct io.Writer according the command line parameters},
-	//       }
-	//       err := handler.Compute()
+	var reader lab2.InputReader
+	var writer lab2.OutputWriter
 
-	res, _ := lab2.PrefixToPostfix("+ 2 2")
-	fmt.Println(res)
+	if *exprPtr != "" {
+		reader = lab2.NewStringInputReader(*exprPtr)
+	} else if *filePtr != "" {
+		file, err := os.Open(*filePtr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		reader = lab2.NewFileInputReader(file)
+	} else {
+		log.Fatal("No input provided")
+	}
+
+	if *outputPtr != "" {
+		file, err := os.Create(*outputPtr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		writer = lab2.NewFileOutputWriter(file)
+	} else {
+		writer = lab2.NewStdOutputWriter()
+	}
+
+	handler := lab2.Handler{
+		Reader: reader,
+		Writer: writer,
+	}
+
+	err := handler.Compute()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

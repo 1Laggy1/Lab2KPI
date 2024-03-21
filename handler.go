@@ -1,37 +1,33 @@
-// lab2/handler.go
 package lab2
 
 import (
-	"bufio"
 	"errors"
 	"io"
-	"os"
+	"io/ioutil"
 	"strings"
 )
 
 // ComputeHandler відповідає за обробку виразів та запис результатів
 type ComputeHandler struct {
-	input  io.Reader
+	input  string
 	output io.Writer
 }
 
 // NewComputeHandler створює новий екземпляр ComputeHandler
-func NewComputeHandler(input io.Reader, output io.Writer) *ComputeHandler {
+func NewComputeHandler(input string, output io.Writer) *ComputeHandler {
 	return &ComputeHandler{input: input, output: output}
 }
 
 // Compute обробляє вираз та записує результат
-// Compute обробляє вираз та записує результат
 func (ch *ComputeHandler) Compute() error {
-	// Зчитування виразу з введеного джерела
-	scanner := bufio.NewScanner(ch.input)
-	if !scanner.Scan() {
+	// Розділити введений рядок на окремі елементи
+	expression := strings.Fields(ch.input)
+	if len(expression) == 0 {
 		return errors.New("відсутні дані для обробки")
 	}
-	expression := scanner.Text()
 
 	// Логіка обчислення виразу з використанням функцій з implementation.go
-	result, err := PostfixToInfix(expression)
+	result, err := PostfixToInfix(strings.Join(expression, " "))
 	if err != nil {
 		return err
 	}
@@ -46,30 +42,16 @@ func (ch *ComputeHandler) Compute() error {
 }
 
 // ParseInput розпізнає тип введення та повертає відповідне джерело вводу
-func ParseInput(expressionFlag, fileFlag string) (io.Reader, error) {
+func ParseInput(expressionFlag, fileFlag string) (string, error) {
 	if expressionFlag != "" {
-		return strings.NewReader(expressionFlag), nil
+		return expressionFlag, nil
 	} else if fileFlag != "" {
-		file, err := os.Open(fileFlag)
+		data, err := ioutil.ReadFile(fileFlag)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
-		defer file.Close()
-		return file, nil
+		return string(data), nil
 	} else {
-		return nil, errors.New("не вказаний вираз або файл з виразом")
-	}
-}
-
-// ParseOutput розпізнає тип виведення та повертає відповідне місце виведення
-func ParseOutput(outputFlag string) (io.Writer, error) {
-	if outputFlag != "" {
-		file, err := os.Create(outputFlag)
-		if err != nil {
-			return nil, err
-		}
-		return file, nil
-	} else {
-		return os.Stdout, nil
+		return "", errors.New("не вказаний вираз або файл з виразом")
 	}
 }

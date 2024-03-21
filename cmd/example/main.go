@@ -1,9 +1,9 @@
-// main.go
 package main
 
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	lab2 "github.com/1Laggy1/Lab2KPI"
@@ -25,11 +25,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Розпізнавання типу виведення
-	output, err := lab2.ParseOutput(*outputFlag)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Помилка визначення виводу: %v\n", err)
-		os.Exit(1)
+	// Використання стандартного виводу, якщо файл для виведення не вказано
+	var output io.Writer = os.Stdout
+	if *outputFlag != "" {
+		outputFile, err := os.Create(*outputFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Помилка створення файлу для виведення: %v\n", err)
+			os.Exit(1)
+		}
+		defer outputFile.Close()
+		output = outputFile
 	}
 
 	// Створення екземпляру ComputeHandler та обробка виразу

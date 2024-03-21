@@ -43,9 +43,9 @@ func main() {
 		writer = lab2.NewStdOutputWriter()
 	}
 
-	handler := lab2.Handler{
-		Reader: reader,
-		Writer: writer,
+	handler := lab2.ComputeHandler{
+		InputReader:  reader,
+		OutputWriter: writer,
 	}
 
 	err := handler.Compute()

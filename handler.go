@@ -1,31 +1,40 @@
+// handler.go
+
 package lab2
 
 import (
-    "fmt"
-    "io"
+	"fmt"
+	"io"
 )
 
+type InputReader interface {
+	Read() (string, error)
+}
+
+type OutputWriter interface {
+	Write(string) error
+}
+
 type ComputeHandler struct {
-    InputReader  io.Reader
-    OutputWriter io.Writer
+	InputReader  InputReader
+	OutputWriter OutputWriter
 }
 
 func (ch *ComputeHandler) Compute() error {
-    var input string
-    _, err := fmt.Fscan(ch.InputReader, &input)
-    if err != nil {
-        return err
-    }
+	expr, err := ch.InputReader.Read()
+	if err != nil {
+		return err
+	}
 
-    result, err := PostfixToInfix(input)
-    if err != nil {
-        return err
-    }
+	result, err := PostfixToInfix(expr)
+	if err != nil {
+		return err
+	}
 
-    _, err = fmt.Fprintln(ch.OutputWriter, result)
-    if err != nil {
-        return err
-    }
+	err = ch.OutputWriter.Write(result)
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
